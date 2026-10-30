@@ -1,0 +1,27 @@
+{
+  "$schema": "homarr-custom-widget-v2",
+  "name": "Nginx Proxy Manager — Hosts & HTTP Traffic",
+  "description": "Read-only NPM proxy hosts and daily HTTP traffic metrics through a companion collector. Requires local source configuration.",
+  "sources": {
+    "default": {
+      "type": "http",
+      "baseUrl": "http://collector.example.invalid:8787",
+      "networkScope": "private",
+      "auth": "bearer"
+    }
+  },
+  "requests": {
+    "snapshot": {
+      "source": "default",
+      "kind": "query",
+      "method": "GET",
+      "path": "/snapshot",
+      "trigger": "load",
+      "auth": "inherit",
+      "permission": "view",
+      "cacheSeconds": 60
+    }
+  },
+  "options": {},
+  "template": "<Stack gap=\"sm\">\n  <Group justify=\"space-between\">\n    <Text fw={700} size=\"md\">Nginx Proxy Manager</Text>\n    <RefreshButton requestId=\"snapshot\" size=\"xs\" />\n  </Group>\n  {status.snapshot?.loading\n    ? <Text size=\"sm\">Loading...</Text>\n    : status.snapshot?.ok === false\n    ? <Alert color=\"red\">Collector error: {status.snapshot?.error || \"Check source URL and credentials\"}</Alert>\n    : !data.snapshot\n    ? <Text size=\"sm\">No data available</Text>\n    : <Stack gap=\"sm\">\n        <SimpleGrid cols={2} spacing=\"xs\">\n          <Paper withBorder p=\"sm\">\n            <Text size=\"xs\" c=\"dimmed\">Enabled proxies</Text>\n            <Text fw={700} size=\"xl\" c=\"green\">{data.snapshot.enabledCount ?? 0} / {data.snapshot.hostCount ?? 0}</Text>\n          </Paper>\n          <Paper withBorder p=\"sm\">\n            <Text size=\"xs\" c=\"dimmed\">Requests today</Text>\n            <Text fw={700} size=\"xl\">{data.snapshot.totals?.requests ?? 0}</Text>\n          </Paper>\n          <Paper withBorder p=\"sm\">\n            <Text size=\"xs\" c=\"dimmed\">Response body traffic</Text>\n            <Text fw={700} size=\"lg\">{Math.round(((data.snapshot.totals?.bytes ?? 0) / 1048576) * 100) / 100} MiB</Text>\n          </Paper>\n          <Paper withBorder p=\"sm\">\n            <Text size=\"xs\" c=\"dimmed\">HTTP 4xx / 5xx</Text>\n            <Text fw={700} size=\"lg\" c=\"orange\">{(data.snapshot.totals?.http4xx ?? 0) + (data.snapshot.totals?.http5xx ?? 0)}</Text>\n          </Paper>\n        </SimpleGrid>\n        <Group justify=\"space-between\">\n          <Text fw={600} size=\"sm\">Proxy Hosts</Text>\n          <Badge size=\"sm\" color=\"blue\">{data.snapshot.hostCount ?? 0} hosts</Badge>\n        </Group>\n        <Text size=\"xs\" c=\"dimmed\">Metrics for {data.snapshot.date ?? \"today\"}</Text>\n        {!data.snapshot.hosts?.length\n          ? <Text size=\"sm\">No proxy hosts found.</Text>\n          : data.snapshot.hosts.map((host) =>\n              <Paper key={host.id} withBorder p=\"sm\">\n                <Stack gap=\"xs\">\n                  <Group justify=\"space-between\" gap=\"xs\">\n                    <Text size=\"sm\" fw={600}>{host.domains?.join(\", \") || \"Unknown domain\"}</Text>\n                    <Badge size=\"sm\" color={host.enabled ? \"green\" : \"gray\"}>{host.enabled ? \"ENABLED\" : \"OFF\"}</Badge>\n                  </Group>\n                  <Text size=\"xs\" c=\"dimmed\">Upstream: {host.forward || \"N/A\"}</Text>\n                  <Group gap=\"xs\">\n                    <Badge size=\"xs\" color={host.ssl ? \"teal\" : \"gray\"}>{host.ssl ? \"SSL configured\" : \"No SSL\"}</Badge>\n                    <Badge size=\"xs\" color=\"blue\">ID {host.id}</Badge>\n                  </Group>\n                  <SimpleGrid cols={3} spacing=\"xs\">\n                    <Stack gap={0}><Text size=\"xs\" c=\"dimmed\">Requests</Text><Text size=\"sm\" fw={600}>{host.requests ?? 0}</Text></Stack>\n                    <Stack gap={0}><Text size=\"xs\" c=\"dimmed\">Traffic</Text><Text size=\"sm\" fw={600}>{Math.round(((host.bytes ?? 0) / 1048576) * 100) / 100} MiB</Text></Stack>\n                    <Stack gap={0}><Text size=\"xs\" c=\"dimmed\">Errors</Text><Text size=\"sm\" fw={600} c=\"orange\">{(host.http4xx ?? 0) + (host.http5xx ?? 0)}</Text></Stack>\n                  </SimpleGrid>\n                </Stack>\n              </Paper>\n            )}\n      </Stack>}\n</Stack>\n"
+}

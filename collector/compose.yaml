@@ -1,0 +1,23 @@
+services:
+  npm-collector:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      TZ: "Europe/Rome"
+      LOG_DIR: "/npm-logs"
+      CACHE_SECONDS: "60"
+      LISTEN: "0.0.0.0"
+      PORT: "8787"
+    ports:
+      - "8787:8787"  # restrict to trusted LAN; avoid exposing on Internet
+    volumes:
+      - ${NPM_LOGS_PATH:?Set NPM_LOGS_PATH in .env}:/npm-logs:ro
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=16m
