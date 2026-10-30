@@ -15,7 +15,7 @@ A **read-only** Homarr 2.x custom widget for [Nginx Proxy Manager](https://nginx
 2. `cd collector && cp .env.example .env` and edit **all** placeholder values.
 3. Generate a random key: `openssl rand -hex 32` and set `COLLECTOR_KEY` in `.env`.
 4. Set `NPM_LOGS_PATH` to the host path containing `proxy-host-<id>_access.log`. For TrueNAS SCALE Apps, obtain the exact mount source with `docker inspect <npm-container>`; never assume it lives under your visible datasets.
-5. Start: `docker compose up -d --build` (or adapt `collector/compose.yaml` to TrueNAS SCALE's **Install via YAML**, with absolute paths for build context, env_file and logs volume).
+5. Start: `docker compose up -d --build`. On TrueNAS SCALE, use the dedicated **[`truenas/compose.yaml`](truenas/compose.yaml)** and **[TrueNAS installation guide](truenas/README.md)** through **Apps → Install via YAML**, with valid dataset paths and read-only NPM log access.
 6. Import `widget/widget.json` in **Homarr → Management → Custom Widgets**.
 7. Configure source `default`: **Base URL** = the collector URL reachable from **Homarr server**, for example `http://collector-host.example.internal:8787`; **auth** = Bearer token with the value of `COLLECTOR_KEY`. Request `snapshot` remains `GET /snapshot`.
 8. In the widget workbench click **Try and preview**, confirm `data.snapshot.hostCount` is nonzero, **Save**, add the widget to a board and save the board.
@@ -42,6 +42,10 @@ Request `GET /snapshot` with `Authorization: Bearer <COLLECTOR_KEY>`; success is
 - The sample Compose publishes 8787 on the host: **restrict access to your trusted network**. Do not expose it directly to the Internet.
 - Homarr source credentials are configured privately per installation and are omitted from Workshop exports; double-check the exported source URL before publishing.
 - If you pasted a real password/token into a chat or repository, **rotate it**.
+
+## Screenshot
+
+Add the English, privacy-redacted screenshot to `assets/screenshot-en.png` before publishing. See [screenshot instructions](assets/README.md). Do not use the original screenshot containing private network details.
 
 ## Publish
 

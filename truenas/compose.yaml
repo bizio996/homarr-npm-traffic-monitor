@@ -1,0 +1,32 @@
+# TrueNAS SCALE > Apps > Discover Apps > Install via YAML
+# Copy collector/Dockerfile and collector/collector.py to the dataset named below.
+# Create a private .env file in that dataset with NPM_EMAIL, NPM_PASSWORD,
+# and COLLECTOR_KEY. Do not commit or paste that file publicly.
+# Replace POOL_NAME, dataset paths, NPM URL and log path for your system.
+services:
+  npm-collector:
+    build:
+      context: /mnt/POOL_NAME/apps-custom/npm-collector
+      dockerfile: Dockerfile
+    container_name: npm-homarr-collector
+    restart: unless-stopped
+    env_file:
+      - /mnt/POOL_NAME/apps-custom/npm-collector/.env
+    environment:
+      NPM_URL: "http://NPM_LAN_IP:NPM_ADMIN_PORT"
+      LOG_DIR: /npm-logs
+      TZ: Europe/Rome
+      CACHE_SECONDS: "60"
+      PORT: "8787"
+      LISTEN: 0.0.0.0
+    ports:
+      - "8787:8787" # Restrict access to LAN (or use trusted container network)
+    volumes:
+      - /mnt/.ix-apps/app_mounts/nginx-proxy-manager/data/logs:/npm-logs:ro
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=16m
